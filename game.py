@@ -27,7 +27,7 @@ while not dead:
                 direction = 'down'
             elif event.key == pygame.K_LEFT:
                 direction = 'left'
-            elif event.key == pygame.RIGHT:
+            elif event.key == pygame.K_RIGHT:
                 direction = 'right'
 
     # move snake(direction)
