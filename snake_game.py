@@ -1,6 +1,15 @@
 import numpy as np
 
 
+def init(cols, rows):
+    board = Board(int(rows), int(cols))
+    board.reset_board()
+    game = Game(board)
+    game.spawn_snake()
+    game.spawn_food()
+    return board, game
+
+
 def get_next_pos(row, col, direction):
     if direction == 'up':
         return row - 1, col
@@ -40,13 +49,14 @@ class Game:
     def __init__(self, board):
         self.board = board
         self.snake_length = 4
+        self.gameover_flag = False
         self.tail_row = self.board.middle_row
         self.tail_col = self.board.middle_col
         self.head_row = self.board.middle_row
         self.head_col = self.board.middle_col + self.snake_length - 1
         self.body = np.zeros((self.snake_length, 2), dtype=int)
         self.score = 0
-        self.prev_move = ''
+        self.prev_move = 'right'
 
     def __str__(self):
         return self.board.__str__()
@@ -59,37 +69,38 @@ class Game:
 
     def move_snake(self, direction):
         if self.prev_move == 'up' and direction == 'down':
-            return
+            direction = 'up'
         elif self.prev_move == 'down' and direction == 'up':
-            return
+            direction = 'down'
         elif self.prev_move == 'left' and direction == 'right':
-            return
+            direction = 'left'
         elif self.prev_move == 'right' and direction == 'left':
-            return
-        if not self.board.check_move(self.head_row, self.head_col, direction):
+            direction = 'right'
+        elif not self.board.check_move(self.head_row, self.head_col, direction):
             self.game_over()
-        else:
-            new_row, new_col = get_next_pos(self.head_row, self.head_col, direction)
-            # Delete tail on board if there is no food
-            if self.board.board[new_row][new_col] != 2:
-                self.board.board[self.tail_row][self.tail_col] = 0
-                self.body = self.body[1:]
-                self.tail_row = self.body[0][0]
-                self.tail_col = self.body[0][1]
+            return
 
-            elif self.board.board[new_row][new_col] == 2:
-                self.board.board[new_row][new_col] = 1
-                self.spawn_food()
-                self.score += 1
-            # Make new head on board
+        new_row, new_col = get_next_pos(self.head_row, self.head_col, direction)
+        # Delete tail on board if there is no food
+        if self.board.board[new_row][new_col] != 2:
+            self.board.board[self.tail_row][self.tail_col] = 0
+            self.body = self.body[1:]
+            self.tail_row = self.body[0][0]
+            self.tail_col = self.body[0][1]
+
+        elif self.board.board[new_row][new_col] == 2:
             self.board.board[new_row][new_col] = 1
-            self.head_row = new_row
-            self.head_col = new_col
-            self.body = np.vstack([self.body, [self.head_row, self.head_col]])
-        self.prev_move == direction
+            self.spawn_food()
+            self.score += 1
+        # Make new head on board
+        self.board.board[new_row][new_col] = 1
+        self.head_row = new_row
+        self.head_col = new_col
+        self.body = np.vstack([self.body, [self.head_row, self.head_col]])
+        self.prev_move = direction
 
     def game_over(self):
-        print("rip")
+        self.gameover_flag = True
 
     def spawn_food(self):
         spawned = False
