@@ -1,4 +1,6 @@
 import numpy as np
+import game as g
+import pygame
 
 
 def init(cols, rows):
@@ -7,7 +9,7 @@ def init(cols, rows):
     game = Game(board)
     game.spawn_snake()
     game.spawn_food()
-    return board, game
+    return game
 
 
 def get_next_pos(row, col, direction):
@@ -57,6 +59,7 @@ class Game:
         self.body = np.zeros((self.snake_length, 2), dtype=int)
         self.score = 0
         self.prev_move = 'right'
+        self.reward = 0
 
     def __str__(self):
         return self.board.__str__()
@@ -76,8 +79,9 @@ class Game:
             direction = 'left'
         elif self.prev_move == 'right' and direction == 'left':
             direction = 'right'
-        elif not self.board.check_move(self.head_row, self.head_col, direction):
+        if not self.board.check_move(self.head_row, self.head_col, direction):
             self.game_over()
+            self.reward -= 1
             return
 
         new_row, new_col = get_next_pos(self.head_row, self.head_col, direction)
@@ -87,11 +91,12 @@ class Game:
             self.body = self.body[1:]
             self.tail_row = self.body[0][0]
             self.tail_col = self.body[0][1]
-
+            self.reward -= 0.005
         elif self.board.board[new_row][new_col] == 2:
             self.board.board[new_row][new_col] = 1
             self.spawn_food()
             self.score += 1
+            self.reward += 2
         # Make new head on board
         self.board.board[new_row][new_col] = 1
         self.head_row = new_row
@@ -101,6 +106,7 @@ class Game:
 
     def game_over(self):
         self.gameover_flag = True
+        #self.reward = -1
 
     def spawn_food(self):
         spawned = False
@@ -124,56 +130,178 @@ class Game:
         self.prev_move = 'right'
         self.spawn_snake()
         self.spawn_food()
+
         self.score = 0
+        self.reward = 0
+        return self.snake_sense()
+
+    def step(self, direction):
+        self.move_snake(direction)
+        return self.snake_sense(), self.reward, self.gameover_flag
 
     def snake_sense(self):
         """get distances up down left right to relevant items, value of 0 means snake can't see it"""
-        stop_flag = False
-        food_dist = np.zeros(4, dtype=int)
-        edge_dist = np.zeros(4, dtype=int)
-        body_dist = np.zeros(4, dtype=int)
+        distances = np.zeros(24, dtype = int)
 
         # UP
-        edge_dist[0] = self.head_row
+        stop_flag = False
+        stop_food_flag = False
+        distances[8] = self.head_row
         for i in range(1, self.head_row):
             value = self.board.board[self.head_row - i][self.head_col]
             if value == 2:
-                food_dist[0] = i
+                if not stop_food_flag:
+                    distances[16] = i
+                    stop_food_flag = True
             elif value == 1:
                 if not stop_flag:
-                    body_dist[0] = i
+                    distances[0] = i
                     stop_flag = True
 
-        # DOWN
-        edge_dist[1] = (self.board.row - (self.head_row + 1)) + 1
-        for i in range(self.head_row + 1, self.board.row - 1):
-            value = self.board.board[i][self.head_col]
+        # UP RIGHT
+        stop_flag = False
+        stop_food_flag = False
+        if self.board.col - self.head_col > self.head_row:
+            distances[9] = self.head_row
+        else:
+            distances[9] = self.head_col
+        row = self.head_row
+        col = self.head_col
+        while row > 0 and col < self.board.col - 1:
+            row -= 1
+            col += 1
+            value = self.board.board[row][col]
             if value == 2:
-                food_dist[1] = i - self.head_row
+                if not stop_food_flag:
+                    distances[17] = col - self.head_col
+                    stop_food_flag = True
             elif value == 1:
                 if not stop_flag:
-                    body_dist[1] = i - self.head_row
-                    stop_flag = True
-
-        # LEFT
-        edge_dist[2] = self.head_col
-        for i in range(1, self.head_col):
-            value = self.board.board[self.head_row][self.head_col - i]
-            if value == 2:
-                food_dist[2] = i
-            elif value == 1:
-                if not stop_flag:
-                    body_dist[2] = i
+                    distances[1] = col - self.head_col
                     stop_flag = True
 
         # RIGHT
-        edge_dist[3] = (self.board.col - (self.head_col + 1)) + 1
+        stop_flag = False
+        stop_food_flag = False
+        distances[10] = (self.board.col - (self.head_col + 1)) + 1
         for i in range(self.head_col + 1, self.board.col - 1):
             value = self.board.board[self.head_row][i]
             if value == 2:
-                food_dist[3] = i - self.head_col
+                if not stop_food_flag:
+                    distances[18] = i - self.head_col
+                    stop_food_flag = True
             elif value == 1:
                 if not stop_flag:
-                    body_dist[3] = i - self.head_col
+                    distances[2] = i - self.head_col
                     stop_flag = True
-        return body_dist, edge_dist, food_dist
+
+        # RIGHT DOWN
+        stop_flag = False
+        stop_food_flag = False
+        if self.board.col - self.head_col > self.board.row - self.head_row:
+            distances[11] = self.board.row - self.head_row
+        else:
+            distances[11] = self.board.col - self.head_col
+        row = self.head_row
+        col = self.head_col
+        while row < self.board.row - 1 and col < self.board.col - 1:
+            row += 1
+            col += 1
+            value = self.board.board[row][col]
+            if value == 2:
+                if not stop_food_flag:
+                    distances[17] = row - self.head_row
+                    stop_food_flag = True
+            elif value == 1:
+                if not stop_flag:
+                    distances[3] = row - self.head_row
+                    stop_flag = True
+
+        # DOWN
+        stop_flag = False
+        stop_food_flag = False
+        distances[12] = (self.board.row - (self.head_row + 1)) + 1
+        for i in range(self.head_row + 1, self.board.row - 1):
+            value = self.board.board[i][self.head_col]
+            if value == 2:
+                if not stop_food_flag:
+                    distances[20] = i - self.head_row
+                    stop_food_flag = True
+            elif value == 1:
+                if not stop_flag:
+                    distances[4] = i - self.head_row
+                    stop_flag = True
+
+        # DOWN LEFT
+        stop_flag = False
+        stop_food_flag = False
+        if self.head_col > self.board.row - self.head_row:
+            distances[13] = self.board.row - self.head_row
+        else:
+            distances[13] = self.board.col - self.head_col
+        row = self.head_row
+        col = self.head_col
+        while row < self.board.row - 1 and col > 0:
+            row += 1
+            col -= 1
+            value = self.board.board[row][col]
+            if value == 2:
+                if not stop_food_flag:
+                    distances[21] = row - self.head_row
+                    stop_food_flag = True
+            elif value == 1:
+                if not stop_flag:
+                    distances[5] = row - self.head_row
+                    stop_flag = True
+
+        # LEFT
+        stop_flag = False
+        stop_food_flag = False
+        distances[6] = self.head_col
+        for i in range(1, self.head_col):
+            value = self.board.board[self.head_row][self.head_col - i]
+            if value == 2:
+                if not stop_food_flag:
+                    distances[22] = i
+                    stop_food_flag = True
+            elif value == 1:
+                if not stop_flag:
+                    distances[14] = i
+                    stop_flag = True
+
+        # LEFT UP
+        stop_flag = False
+        stop_food_flag = False
+        if self.head_col > self.head_row:
+            distances[13] = self.head_row
+        else:
+            distances[15] = self.board.col - self.head_col
+        row = self.head_row
+        col = self.head_col
+        while row > 0 and col > 0:
+            row -= 1
+            col -= 1
+            value = self.board.board[row][col]
+            if value == 2:
+                if not stop_food_flag:
+                    distances[23] = self.head_row - row
+                    stop_food_flag = True
+            elif value == 1:
+                if not stop_flag:
+                    distances[7] = self.head_row - row
+                    stop_flag = True
+
+        for i in range(1, 24):
+            if distances[i] == 0:
+                distances[i] = -1
+        return distances
+
+    def render(self):
+        black = (0, 0, 0)
+        clock = pygame.time.Clock()
+        game_display = pygame.display.set_mode((230, 230))
+        game_display.fill(black)
+        g.draw_board(self)
+        pygame.display.update()
+        clock.tick(60)
+

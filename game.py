@@ -12,7 +12,7 @@ red = (255, 0, 0)
 game_display = pygame.display.set_mode((display_width, display_height))
 pygame.display.set_caption('Snakepy')
 clock = pygame.time.Clock()
-board, game = sg.init(display_width/blocksize, display_height/blocksize)
+# game = sg.init(display_width/blocksize, display_height/blocksize)
 
 
 def map_pos(row, col):
@@ -33,8 +33,8 @@ def draw_board(game_):
 
 def game_over(game):
     message_display('Score: {0}'.format(game.score))
-
-    game_loop()
+    # game.reset()
+    # game_loop()
 
 
 def message_display(text):
@@ -43,7 +43,7 @@ def message_display(text):
     text_rect.center = ((display_width/2), (display_height/2))
     game_display.blit(text_surface, text_rect)
     pygame.display.update()
-    time.sleep(2)
+    time.sleep(1)
 
 
 def text_objects(text, font):
@@ -56,7 +56,7 @@ def draw_block(x, y, w, h, color):
 
 
 def game_loop():
-    game.reset()
+    game = sg.init(80, 60)
     game_exit = False
     move_flag = False
     while not game_exit:
@@ -79,9 +79,9 @@ def game_loop():
                     move_flag = True
 
         game_display.fill(black)
-        print(game.snake_sense())
         if game.gameover_flag:
             game_over(game)
+            game_loop()
         if move_flag:
             game.move_snake(direction)
             # move_flag = False
@@ -91,6 +91,7 @@ def game_loop():
         clock.tick(20)
 
 
-game_loop()
-pygame.quit()
-quit()
+#game_loop()
+# rl_loop()
+# pygame.quit()
+# quit()
