@@ -1,8 +1,6 @@
 import pygame
 import time
-import random
 import snake_game as sg
-import numpy as np
 
 pygame.init()
 display_width = 800
@@ -14,6 +12,7 @@ red = (255, 0, 0)
 game_display = pygame.display.set_mode((display_width, display_height))
 pygame.display.set_caption('Snakepy')
 clock = pygame.time.Clock()
+board, game = sg.init(display_width/blocksize, display_height/blocksize)
 
 
 def map_pos(row, col):
@@ -57,7 +56,7 @@ def draw_block(x, y, w, h, color):
 
 
 def game_loop():
-    board, game = sg.init(display_width/blocksize, display_height/blocksize)
+    game.reset()
     game_exit = False
     move_flag = False
     while not game_exit:
@@ -80,6 +79,7 @@ def game_loop():
                     move_flag = True
 
         game_display.fill(black)
+        print(game.snake_sense())
         if game.gameover_flag:
             game_over(game)
         if move_flag:
@@ -88,7 +88,7 @@ def game_loop():
 
         draw_board(game)
         pygame.display.update()
-        clock.tick(30)
+        clock.tick(20)
 
 
 game_loop()

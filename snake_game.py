@@ -110,3 +110,70 @@ class Game:
             if self.board.board[food_row][food_col] == 0:
                 self.board.board[food_row][food_col] = 2
                 spawned = True
+
+    def reset(self):
+        self.board.reset_board()
+        self.snake_length = 4
+        self.gameover_flag = False
+        self.tail_row = self.board.middle_row
+        self.tail_col = self.board.middle_col
+        self.head_row = self.board.middle_row
+        self.head_col = self.board.middle_col + self.snake_length - 1
+        self.body = np.zeros((self.snake_length, 2), dtype=int)
+        self.score = 0
+        self.prev_move = 'right'
+        self.spawn_snake()
+        self.spawn_food()
+        self.score = 0
+
+    def snake_sense(self):
+        """get distances up down left right to relevant items, value of 0 means snake can't see it"""
+        stop_flag = False
+        food_dist = np.zeros(4, dtype=int)
+        edge_dist = np.zeros(4, dtype=int)
+        body_dist = np.zeros(4, dtype=int)
+
+        # UP
+        edge_dist[0] = self.head_row
+        for i in range(1, self.head_row):
+            value = self.board.board[self.head_row - i][self.head_col]
+            if value == 2:
+                food_dist[0] = i
+            elif value == 1:
+                if not stop_flag:
+                    body_dist[0] = i
+                    stop_flag = True
+
+        # DOWN
+        edge_dist[1] = (self.board.row - (self.head_row + 1)) + 1
+        for i in range(self.head_row + 1, self.board.row - 1):
+            value = self.board.board[i][self.head_col]
+            if value == 2:
+                food_dist[1] = i - self.head_row
+            elif value == 1:
+                if not stop_flag:
+                    body_dist[1] = i - self.head_row
+                    stop_flag = True
+
+        # LEFT
+        edge_dist[2] = self.head_col
+        for i in range(1, self.head_col):
+            value = self.board.board[self.head_row][self.head_col - i]
+            if value == 2:
+                food_dist[2] = i
+            elif value == 1:
+                if not stop_flag:
+                    body_dist[2] = i
+                    stop_flag = True
+
+        # RIGHT
+        edge_dist[3] = (self.board.col - (self.head_col + 1)) + 1
+        for i in range(self.head_col + 1, self.board.col - 1):
+            value = self.board.board[self.head_row][i]
+            if value == 2:
+                food_dist[3] = i - self.head_col
+            elif value == 1:
+                if not stop_flag:
+                    body_dist[3] = i - self.head_col
+                    stop_flag = True
+        return body_dist, edge_dist, food_dist
