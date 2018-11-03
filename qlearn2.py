@@ -49,8 +49,8 @@ class DoubleDQNAgent:
         model = Sequential()
         model.add(Dense(16, input_dim=self.state_size, activation='relu',
                         kernel_initializer='he_uniform'))
-        #model.add(Dense(24, activation='relu',
-                        #kernel_initializer='he_uniform'))
+        model.add(Dense(16, activation='relu',
+                        kernel_initializer='he_uniform'))
         model.add(Dense(self.action_size, activation='linear',
                         kernel_initializer='he_uniform'))
         model.summary()

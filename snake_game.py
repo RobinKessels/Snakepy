@@ -91,12 +91,12 @@ class Game:
             self.body = self.body[1:]
             self.tail_row = self.body[0][0]
             self.tail_col = self.body[0][1]
-            self.reward -= 0.005
+            self.reward -= 0
         elif self.board.board[new_row][new_col] == 2:
             self.board.board[new_row][new_col] = 1
             self.spawn_food()
             self.score += 1
-            self.reward += 2
+            self.reward += 5
         # Make new head on board
         self.board.board[new_row][new_col] = 1
         self.head_row = new_row
@@ -291,9 +291,9 @@ class Game:
                     distances[7] = self.head_row - row
                     stop_flag = True
 
-        for i in range(1, 24):
-            if distances[i] == 0:
-                distances[i] = -1
+        #for i in range(24):
+            #if distances[i] == 0:
+              #  distances[i] = -1
         return distances
 
     def render(self):
