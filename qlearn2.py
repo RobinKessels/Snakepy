@@ -1,3 +1,26 @@
+"""MIT License
+
+Copyright (c) 2017 RLCode
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE."""
+"""This code is obtained at https://github.com/rlcode/reinforcement-learning, and is adapted for study of 
+reinforcement learning in my selfmade snake game"""
 import random
 import numpy as np
 from collections import deque
@@ -8,8 +31,7 @@ import snake_game as sg
 
 EPISODES = 3000
 
-"""This code is obtained at https://github.com/rlcode/reinforcement-learning, and is used for study of 
-reinforcement learning"""
+
 # Double DQN Agent for the Cartpole
 # it uses Neural Network to approximate q function
 # and replay memory & target q network
